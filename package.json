@@ -1,20 +1,19 @@
 {
-  "name": "vite-react-typescript-starter",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "fullstack-gemini-app",
+  "version": "1.0.0",
+  "type": "commonjs",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "lint": "eslint .",
-    "preview": "vite preview",
-    "typecheck": "tsc --noEmit -p tsconfig.app.json"
+    "install": "cd frontend && npm install && cd ../backend && npm install",
+    "build": "cd frontend && npm run build",
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.57.4",
-    "lucide-react": "^0.344.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "@google/generative-ai": "^0.24.1",
+    "axios": "^1.13.5",
+    "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.1",
