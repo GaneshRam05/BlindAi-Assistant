@@ -6,14 +6,13 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 
 // Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ===== API ROUTE =====
+// ===== API =====
 app.post("/ask-ai", async (req, res) => {
   try {
     const { message } = req.body;
@@ -33,15 +32,13 @@ app.post("/ask-ai", async (req, res) => {
 });
 
 // ===== SERVE FRONTEND =====
-const frontendPath = path.join(__dirname, "dist");
+const frontendPath = path.join(__dirname, "../dist");
 app.use(express.static(frontendPath));
 
-// React routing support
-app.get("/*", (req, res) => {
+// ✅ Express 5 catch-all fix
+app.get("/{*any}", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => {
-  console.log("Blind AI Backend Running ✅");
-});
+app.listen(PORT, () => console.log("Blind AI Backend Running ✅"));
