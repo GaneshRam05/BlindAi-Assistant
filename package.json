@@ -1,25 +1,26 @@
 {
   "name": "fullstack-gemini-app",
   "version": "1.0.0",
-  "type": "commonjs",
-
+  "private": true,
+  "type": "module",
   "engines": {
     "node": "20.x"
   },
-
   "scripts": {
     "build": "vite build",
-    "start": "node server/server.js"
+    "start": "node server/server.js",
+    "dev": "vite"
   },
-
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "axios": "^1.13.5",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "lucide-react": "^0.575.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
   },
-
   "devDependencies": {
     "@eslint/js": "^9.9.1",
     "@types/react": "^18.3.5",
