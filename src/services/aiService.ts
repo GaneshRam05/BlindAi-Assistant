@@ -1,4 +1,4 @@
-const API_URL = "https://blind-ai-backend.onrender.com/ask-ai";
+const API_URL = "https://blind-ai-backend.onrender.com";
 
 export const askAI = async (message: string): Promise<string> => {
   try {
@@ -15,9 +15,7 @@ export const askAI = async (message: string): Promise<string> => {
     }
 
     const data = await response.json();
-
     return data.reply || "No response from AI.";
-
   } catch (error) {
     console.error("AI Service Error:", error);
     return "Sorry, I cannot connect to AI right now.";
