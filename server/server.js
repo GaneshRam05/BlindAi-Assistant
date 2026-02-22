@@ -9,7 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Gemini
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // ===== API =====
@@ -21,7 +20,10 @@ app.post("/ask-ai", async (req, res) => {
       return res.status(500).json({ error: "Missing API key" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash"
+    });
+
     const result = await model.generateContent(message);
     const reply = result.response.text();
 
@@ -33,13 +35,11 @@ app.post("/ask-ai", async (req, res) => {
   }
 });
 
-
 // ===== SERVE FRONTEND =====
 const frontendPath = path.join(__dirname, "../dist");
 app.use(express.static(frontendPath));
 
-// ✅ Express 5 catch-all fix
-app.get("/{*any}", (req, res) => {
+app.get("*", (req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
