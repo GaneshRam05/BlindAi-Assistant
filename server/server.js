@@ -1,61 +1,55 @@
-// backend/server.js
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "../.env") });
+require("dotenv").config();
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 
-// Middleware
+/* ---------------- MIDDLEWARE ---------------- */
 app.use(cors());
 app.use(express.json());
 
-// Initialize Gemini AI with API key
+/* ---------------- GEMINI SETUP ---------------- */
+if (!process.env.GEMINI_API_KEY) {
+  console.error("❌ GEMINI_API_KEY is missing");
+  process.exit(1);
+}
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ===== Serve React Frontend =====
-const frontendPath = path.join(__dirname, "../frontend/dist");
-app.use(express.static(frontendPath));
+/* ---------------- HEALTH CHECK ---------------- */
+app.get("/", (req, res) => {
+  res.send("Blind AI Backend Running ✅");
+});
 
-// POST /ask-ai endpoint
+/* ---------------- AI ROUTE ---------------- */
 app.post("/ask-ai", async (req, res) => {
   try {
     const { message } = req.body;
 
-    if (!message) return res.status(400).json({ error: "Message is required" });
+    if (!message) {
+      return res.status(400).json({ error: "Message is required" });
+    }
 
     const model = genAI.getGenerativeModel({
-      model: "models/text-bison-001", // Free tier model
+      model: "gemini-1.5-flash"
     });
 
-    const result = await model.generateContent({
-      contents: [
-        {
-          role: "user",
-          parts: [{ text: message }],
-        },
-      ],
-    });
+    const result = await model.generateContent(message);
+    const reply = result.response.text();
 
-    const text = result.response.text();
-    res.json({ reply: text });
+    res.json({ reply });
+
   } catch (error) {
     console.error("Gemini Error:", error);
-    res.status(500).json({
-      error: error.message,
-      details: JSON.stringify(error, Object.getOwnPropertyNames(error)),
-    });
+    res.status(500).json({ error: "AI request failed" });
   }
 });
 
-// For React Router: serve index.html on unmatched routes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
+/* ---------------- START SERVER ---------------- */
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 Server running on http://localhost:${PORT}`));
 
-// Log API key length for verification
-console.log("KEY LENGTH:", process.env.GEMINI_API_KEY?.length);
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log("KEY LENGTH:", process.env.GEMINI_API_KEY.length);
+});
