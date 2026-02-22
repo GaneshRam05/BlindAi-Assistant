@@ -16,20 +16,23 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 app.post("/ask-ai", async (req, res) => {
   try {
     const { message } = req.body;
-    if (!message) return res.status(400).json({ error: "Message is required" });
 
-    const model = genAI.getGenerativeModel({
-      model: "models/text-bison-001",
-    });
+    if (!process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "Missing API key" });
+    }
 
+    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
     const result = await model.generateContent(message);
-    res.json({ reply: result.response.text() });
+    const reply = result.response.text();
+
+    res.json({ reply });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "AI request failed" });
+    console.error("AI ERROR:", err);
+    res.status(500).json({ error: "AI failed to respond" });
   }
 });
+
 
 // ===== SERVE FRONTEND =====
 const frontendPath = path.join(__dirname, "../dist");
