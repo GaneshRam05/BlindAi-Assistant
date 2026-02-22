@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL;
+const API_URL = "https://blind-ai-backend.onrender.com/ask-ai";
 
 export const askAI = async (message: string): Promise<string> => {
   try {
