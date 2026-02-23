@@ -6,18 +6,16 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 const app = express();
 
-// ===== MIDDLEWARE =====
 app.use(cors());
 app.use(express.json());
 
-// ===== GEMINI SETUP =====
 if (!process.env.GEMINI_API_KEY) {
   console.error("❌ GEMINI_API_KEY missing in environment");
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ===== API ROUTE =====
+// ===== API =====
 app.post("/ask-ai", async (req, res) => {
   try {
     const { message } = req.body;
@@ -27,7 +25,7 @@ app.post("/ask-ai", async (req, res) => {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash",
+      model: "gemini-1.5-flash-latest"
     });
 
     const result = await model.generateContent(message);
@@ -36,21 +34,19 @@ app.post("/ask-ai", async (req, res) => {
     res.json({ reply });
 
   } catch (error) {
-    console.error("🔥 AI ERROR:", error);
+    console.error("🔥 AI ERROR:", error.message || error);
     res.status(500).json({ error: "AI failed to respond" });
   }
 });
 
-// ===== SERVE FRONTEND (VITE BUILD) =====
+// ===== SERVE FRONTEND =====
 const frontendPath = path.join(__dirname, "../dist");
 app.use(express.static(frontendPath));
 
-// ✅ Express 5 SAFE FALLBACK (NO WILDCARDS)
 app.use((req, res) => {
   res.sendFile(path.join(frontendPath, "index.html"));
 });
 
-// ===== START SERVER =====
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
   console.log("🚀 Blind AI Backend Running on port", PORT);
