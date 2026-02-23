@@ -12,15 +12,13 @@ interface ReadingModeProps {
 export default function ReadingMode({ isActive }: ReadingModeProps) {
   const [cameraActive, setCameraActive] = useState(false);
   const [isReading, setIsReading] = useState(false);
-  const [extractedText, setExtractedText] = useState('');
+  const [text, setText] = useState('');
   const [error, setError] = useState('');
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     return () => {
-      if (cameraActive) {
-        cameraService.stopCamera();
-      }
+      cameraService.stopCamera();
       speechService.stop();
     };
   }, []);
@@ -32,62 +30,47 @@ export default function ReadingMode({ isActive }: ReadingModeProps) {
         await cameraService.startCamera(videoRef.current);
         setCameraActive(true);
         vibrateShort();
-        speechService.speak('Camera activated. Point at text and press Read Text.');
+        speechService.speak("Camera ready. Point at text.");
       }
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to start camera';
+      const message = err instanceof Error ? err.message : 'Camera failed';
       setError(message);
       speechService.speak(message);
     }
   };
 
   const readText = async () => {
-    if (!cameraActive) {
-      speechService.speak('Please start the camera first');
-      return;
-    }
-
-    setIsReading(true);
-    setError('');
+    if (!cameraActive || isReading) return;
 
     try {
-      vibrateShort();
-      speechService.speak('Capturing and reading text...');
+      setIsReading(true);
+      speechService.stop();
+      speechService.speak("Reading text.");
 
       const imageData = cameraService.captureImage();
-      if (!imageData) {
-        throw new Error('Failed to capture image');
-      }
+      if (!imageData) throw new Error("Capture failed");
 
-      const prompt = `Extract and read all visible text from this image.
-      This includes text from books, signs, labels, menus, documents, or any written content.
-      Provide the text exactly as it appears, preserving line breaks and formatting where appropriate.
-      If there is no readable text, say "No text detected in the image."`;
+      const prompt = `
+Extract ONLY readable text from this image.
 
-      const response = await askAI(prompt);
+Rules:
+• Preserve line breaks
+• No explanation
+• If no text say: No readable text found
+`;
 
-      setExtractedText(response);
+      const response = await askAI(prompt, imageData);
+
+      setText(response);
+      speechService.stop();
       speechService.speak(response);
       vibrateShort();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to read text';
-      setError(message);
-      speechService.speak(message);
+
+    } catch {
+      speechService.speak("Text reading failed.");
     } finally {
       setIsReading(false);
     }
-  };
-
-  const repeatReading = () => {
-    if (extractedText) {
-      speechService.speak(extractedText);
-      vibrateShort();
-    }
-  };
-
-  const stopSpeaking = () => {
-    speechService.stop();
-    vibrateShort();
   };
 
   if (!isActive) return null;
@@ -95,25 +78,19 @@ export default function ReadingMode({ isActive }: ReadingModeProps) {
   return (
     <div className="flex flex-col items-center w-full max-w-4xl mx-auto">
       <div className="relative w-full aspect-video bg-gray-900 rounded-lg overflow-hidden mb-6">
-        <video
-          ref={videoRef}
-          className="w-full h-full object-cover"
-          playsInline
-          muted
-        />
+        <video ref={videoRef} className="w-full h-full object-cover" playsInline muted />
+
         {!cameraActive && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-800">
             <Camera className="w-24 h-24 text-gray-600" />
           </div>
         )}
+
         {isReading && (
-          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center">
-            <div className="text-white text-2xl font-bold">Reading Text...</div>
+          <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center text-white text-2xl font-bold">
+            Reading...
           </div>
         )}
-        <div className="absolute top-4 left-4 right-4 bg-blue-500 bg-opacity-90 text-white px-4 py-3 rounded-lg text-center">
-          <p className="text-lg font-bold">Point camera at text</p>
-        </div>
       </div>
 
       {error && (
@@ -126,7 +103,7 @@ export default function ReadingMode({ isActive }: ReadingModeProps) {
         {!cameraActive ? (
           <button
             onClick={startCamera}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 px-8 rounded-lg text-2xl flex items-center justify-center gap-3 transition-colors"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 px-8 rounded-lg text-2xl flex items-center justify-center gap-3"
           >
             <Camera className="w-8 h-8" />
             Start Camera
@@ -135,37 +112,18 @@ export default function ReadingMode({ isActive }: ReadingModeProps) {
           <button
             onClick={readText}
             disabled={isReading}
-            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-6 px-8 rounded-lg text-2xl flex items-center justify-center gap-3 transition-colors"
+            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white font-bold py-6 px-8 rounded-lg text-2xl flex items-center justify-center gap-3"
           >
             <Book className="w-8 h-8" />
-            {isReading ? 'Reading...' : 'Read Text'}
+            {isReading ? "Reading..." : "Read Text"}
           </button>
-        )}
-
-        {extractedText && (
-          <div className="flex gap-4">
-            <button
-              onClick={repeatReading}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-colors"
-            >
-              Repeat
-            </button>
-            <button
-              onClick={stopSpeaking}
-              className="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-4 px-6 rounded-lg text-xl transition-colors"
-            >
-              Stop Speaking
-            </button>
-          </div>
         )}
       </div>
 
-      {extractedText && (
+      {text && (
         <div className="w-full bg-white border-4 border-gray-300 rounded-lg p-6">
-          <h3 className="text-2xl font-bold mb-3 text-gray-900">Extracted Text:</h3>
-          <div className="text-xl leading-relaxed text-gray-800 whitespace-pre-wrap">
-            {extractedText}
-          </div>
+          <h3 className="text-2xl font-bold mb-3 text-gray-900">Detected Text</h3>
+          <div className="text-xl whitespace-pre-wrap">{text}</div>
         </div>
       )}
     </div>

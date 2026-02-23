@@ -18,26 +18,36 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // ===== API =====
 app.post("/ask-ai", async (req, res) => {
   try {
-    const { message } = req.body;
-
-    if (!message) {
-      return res.status(400).json({ error: "Message is required" });
-    }
+    const { message, image } = req.body;
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.5-flash"
+      model: "gemini-1.5-flash-latest",
     });
 
-    const result = await model.generateContent(message);
-    const reply = result.response.text();
+    let result;
 
-    res.json({ reply });
+    if (image) {
+      result = await model.generateContent([
+        message,
+        {
+          inlineData: {
+            mimeType: "image/jpeg",
+            data: image.replace(/^data:image\/\w+;base64,/, ""),
+          },
+        },
+      ]);
+    } else {
+      result = await model.generateContent(message);
+    }
+
+    res.json({ reply: result.response.text() });
 
   } catch (error) {
-    console.error("🔥 AI ERROR:", error.message || error);
+    console.error("🔥 AI ERROR:", error);
     res.status(500).json({ error: "AI failed to respond" });
   }
 });
+
 
 // ===== SERVE FRONTEND =====
 const frontendPath = path.join(__dirname, "../dist");
