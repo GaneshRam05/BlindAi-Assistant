@@ -234,7 +234,7 @@ export default function AssistantMode({ isActive }: AssistantModeProps) {
       {answer && (
         <div className="w-full bg-green-50 border-4 border-green-300 rounded-lg p-6 mb-6">
           <h3 className="text-2xl font-bold mb-3">Answer:</h3>
-          <p className="text-xl">{answer}</p>
+          <p className="text-xl text-gray-900">{answer}</p>
         </div>
       )}
 
