@@ -233,7 +233,7 @@ export default function AssistantMode({ isActive }: AssistantModeProps) {
       {/* ANSWER SECTION */}
       {answer && (
         <div className="w-full bg-green-50 border-4 border-green-300 rounded-lg p-6 mb-6">
-          <h3 className="text-2xl font-bold mb-3">Answer:</h3>
+          <h3 className="text-2xl font-bold text-gray-900 mb-3">Answer:</h3>
           <p className="text-xl text-gray-900">{answer}</p>
         </div>
       )}
@@ -241,14 +241,14 @@ export default function AssistantMode({ isActive }: AssistantModeProps) {
       {/* CONVERSATION HISTORY */}
       {conversationHistory.length > 0 && (
         <div className="w-full bg-white border-4 border-gray-300 rounded-lg p-6">
-          <h3 className="text-2xl font-bold mb-4">
+          <h3 className="text-2xl text-gray-900 font-bold mb-4">
             Conversation History
           </h3>
           <div className="space-y-4">
             {conversationHistory.slice(-3).map((item, index) => (
               <div
                 key={index}
-                className="border-l-4 border-blue-500 pl-4"
+                className="text-gray-900 border-l-4 border-blue-500 pl-4"
               >
                 <p className="font-semibold">Q: {item.q}</p>
                 <p>A: {item.a}</p>
